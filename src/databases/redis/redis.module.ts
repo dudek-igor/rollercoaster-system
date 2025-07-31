@@ -1,14 +1,8 @@
 import { Module, Global } from '@nestjs/common';
-import Redis from 'ioredis';
+import { RedisProvider } from './redis.provider';
 import { RedisService } from './redis.service';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { EnvironmentVariables } from '@/config';
-import {
-  REDIS_CLIENT,
-  REDIS_HOST,
-  REDIS_PASSWORD,
-  REDIS_PORT,
-} from '@/constants';
+import { ConfigModule } from '@nestjs/config';
+
 /**
  * Zadanie Redis.
  *
@@ -22,36 +16,7 @@ import {
 @Global()
 @Module({
   imports: [ConfigModule],
-  providers: [
-    {
-      provide: REDIS_CLIENT,
-      inject: [ConfigService],
-      useFactory: async (
-        configService: ConfigService<EnvironmentVariables, true>,
-      ) => {
-        const host = configService.get(REDIS_HOST, { infer: true });
-        const port = configService.get(REDIS_PORT, { infer: true });
-        const password = configService.get(REDIS_PASSWORD, { infer: true });
-
-        const client = new Redis({
-          host,
-          port,
-          password,
-          // Reconnect every 2 seconds indefinitely
-          retryStrategy: (times) => {
-            console.log(`Reconnect attempt: ${times}`);
-            return 2000;
-          },
-          maxRetriesPerRequest: null,
-        });
-
-        await client.ping();
-
-        return client;
-      },
-    },
-    RedisService,
-  ],
-  exports: [REDIS_CLIENT],
+  providers: [RedisProvider, RedisService],
+  exports: [RedisProvider],
 })
 export class RedisModule {}
