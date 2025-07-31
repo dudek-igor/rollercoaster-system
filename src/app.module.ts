@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { CoastersModule } from './coasters/coasters.module';
+import { ConfigModule } from '@nestjs/config';
+import { CoastersModule } from '@/app';
+import { RedisModule } from '@/databases';
+import { validate } from '@/config';
 
 @Module({
-  imports: [CoastersModule],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [ConfigModule.forRoot({ validate }), RedisModule, CoastersModule],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}
