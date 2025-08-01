@@ -1,4 +1,10 @@
-import { REDIS_HOST, REDIS_PASSWORD, REDIS_PORT } from '@/constants';
+import {
+  NODE_ENV,
+  PORT,
+  REDIS_HOST,
+  REDIS_PASSWORD,
+  REDIS_PORT,
+} from '@/constants';
 import { plainToInstance } from 'class-transformer';
 import {
   IsEnum,
@@ -20,12 +26,12 @@ enum Environment {
  */
 export class EnvironmentVariables {
   @IsEnum(Environment)
-  NODE_ENV: Environment;
+  [NODE_ENV]: Environment;
 
   @IsNumber()
   @Min(0)
   @Max(65535)
-  PORT: number;
+  [PORT]: number;
 
   @IsString()
   [REDIS_HOST]: string = 'localhost';
