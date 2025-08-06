@@ -1,0 +1,51 @@
+services:
+  coasters-app-prod:
+    build: .
+    container_name: coasters-app-prod
+    ports:
+      - "3051:3051"
+    expose:
+      - "3051"
+    environment:
+      PORT: 3051
+      NODE_ENV: production
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD:
+    volumes:
+      - prod-data:/app/data
+    networks:
+      - public # External Access
+      - internal # Internal & Test Redis Access
+    restart: unless-stopped
+
+  coasters-app-dev:
+    build: .
+    container_name: coasters-app-dev
+    expose:
+      - "3050" # Only available internally
+    environment:
+      PORT: 3050
+      NODE_ENV: development
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ""
+    volumes:
+      - dev-data:/app/data
+    networks:
+      - internal # Internal & Test Redis Access
+    restart: unless-stopped
+    depends_on:
+      - coasters-app-prod # Prod started first
+
+# Separated data volumes
+volumes:
+  prod-data:
+  dev-data:
+
+# Separated access
+networks:
+  public:
+  internal:
+    external: true
+    name: internal-net # Internal net for communication with redis in the same network - docker network create --driver bridge --internal internal-net
