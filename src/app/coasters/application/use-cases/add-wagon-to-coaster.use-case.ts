@@ -21,10 +21,10 @@ export class AddWagonToCoasterUseCase {
     if (!coaster) {
       throw new NotFoundException(`Coaster ${coasterId} does not exist`);
     }
-    console.log('jestem', { data, coaster });
-
     const wagon = Wagon.create(data);
     coaster.addWagon(wagon);
+    const statistics = coaster.statistics;
+    console.log({ statistics });
 
     await this.coasterRepo.save(coaster);
     return coaster;

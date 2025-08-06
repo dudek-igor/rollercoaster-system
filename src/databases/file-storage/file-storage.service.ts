@@ -12,7 +12,7 @@ export class FileStorageService {
 
   constructor(private configService: ConfigService<EnvironmentVariables, true>) {
     this.environment = this.configService.get(NODE_ENV, { infer: true });
-    this.dataDir = join(process.cwd(), 'data', this.environment);
+    this.dataDir = join(process.cwd(), 'data', this.environment, 'persistence');
   }
 
   private async ensureDir() {
