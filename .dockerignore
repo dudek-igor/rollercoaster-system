@@ -1,0 +1,24 @@
+# Ignore development-related directories and files
+node_modules/
+data/
+
+# Ignore configuration files and documentation
+.eslintrc
+.prettierrc
+README.md
+
+# Ignore IDE files
+.vscode/
+.idea/
+
+# Ignore git files
+.git/
+.gitignore
+
+# Ignore log and temporary files
+*.log
+*.tmp
+
+# Optional if build via docker-compose
+dockerfile
+docker-compose.yml
