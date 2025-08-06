@@ -25,7 +25,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
    * Initializes the module and starts leader election process.
    */
   async onModuleInit(): Promise<void> {
-    await this.startLeaderElection();
+    // await this.startLeaderElection();
   }
   /**
    * Cleans up on module shutdown: clears intervals and releases leadership if held.

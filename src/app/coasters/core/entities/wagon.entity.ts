@@ -1,44 +1,65 @@
-export default class Wagon {
-  private _id: string;
-  private _seatsCount: number;
-  private _speed: number;
-
-  constructor(seatsCount: number, speed: number, id?: string) {
-    if (seatsCount <= 0 || speed <= 0) {
-      throw new Error('Invalid wagon data');
+import * as crypto from 'crypto';
+export interface WagonSchema {
+  id: string;
+  ilosc_miejsc: number;
+  predkosc_wagonu: number;
+}
+export class Wagon {
+  constructor(
+    private readonly id: string,
+    private ilosc_miejsc: number,
+    private predkosc_wagonu: number,
+  ) {
+    if (ilosc_miejsc <= 0) {
+      throw new Error('Ilość miejsc musi być większa niż 0');
     }
-    this._id = id ?? this.generateUUID();
-    this._seatsCount = seatsCount;
-    this._speed = speed;
-  }
-
-  get id() {
-    return this._id;
-  }
-
-  get seatsCount() {
-    return this._seatsCount;
-  }
-
-  get speed() {
-    return this._speed;
-  }
-
-  updateSeatsCount(newCount: number) {
-    if (newCount <= 0) {
-      throw new Error('Seats count must be positive');
+    if (predkosc_wagonu <= 0) {
+      throw new Error('Prędkość wagonu musi być większa niż 0');
     }
-    this._seatsCount = newCount;
   }
 
-  updateSpeed(newSpeed: number) {
-    if (newSpeed <= 0) {
-      throw new Error('Speed must be positive');
+  get seatsQuantity(): number {
+    return this.ilosc_miejsc;
+  }
+
+  get speed(): number {
+    return this.predkosc_wagonu;
+  }
+
+  get identifier(): string {
+    return this.id;
+  }
+
+  update(ilosc_miejsc: number, predkosc_wagonu: number): void {
+    if (ilosc_miejsc <= 0) {
+      throw new Error('Ilość miejsc musi być większa niż 0');
     }
-    this._speed = newSpeed;
+    if (predkosc_wagonu <= 0) {
+      throw new Error('Prędkość wagonu musi być większa niż 0');
+    }
+
+    this.ilosc_miejsc = ilosc_miejsc;
+    this.predkosc_wagonu = predkosc_wagonu;
+  }
+  /**
+   * Serialization
+   */
+  toJSON(): WagonSchema {
+    return {
+      ilosc_miejsc: this.ilosc_miejsc,
+      predkosc_wagonu: this.predkosc_wagonu,
+      id: this.id,
+    };
+  }
+  /**
+   * Deserialization
+   */
+  static fromJSON(json: WagonSchema): Wagon {
+    return new Wagon(json.id, json.ilosc_miejsc, json.predkosc_wagonu);
   }
 
-  private generateUUID(): string {
-    return crypto.randomUUID();
+  static create(data: { ilosc_miejsc: number; predkosc_wagonu: number; id?: string }): Wagon {
+    const id = data.id || crypto.randomUUID();
+    return new Wagon(id, data.ilosc_miejsc, data.predkosc_wagonu);
   }
 }

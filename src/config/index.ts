@@ -1,19 +1,6 @@
-import {
-  NODE_ENV,
-  PORT,
-  REDIS_HOST,
-  REDIS_PASSWORD,
-  REDIS_PORT,
-} from '@/constants';
+import { NODE_ENV, PORT, REDIS_HOST, REDIS_PASSWORD, REDIS_PORT } from '@/constants';
 import { plainToInstance } from 'class-transformer';
-import {
-  IsEnum,
-  IsNumber,
-  IsString,
-  Max,
-  Min,
-  validateSync,
-} from 'class-validator';
+import { IsEnum, IsNumber, IsString, Max, Min, validateSync } from 'class-validator';
 
 enum Environment {
   Development = 'development',

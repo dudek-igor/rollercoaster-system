@@ -1,106 +1,145 @@
 import * as crypto from 'crypto';
-import Wagon from './wagon.entity';
+import { Wagon, type WagonSchema } from './wagon.entity';
 
-export default class Coaster {
-  private _id: string;
-  private _staffCount: number;
-  private _customersCount: number;
-  private _routeLength: number;
-  private _openingHours: string;
-  private _closingHours: string;
-  private _wagons: Wagon[];
-  private _status: 'active' | 'inactive' | 'maintenance';
+type CoasterStatus = 'active' | 'inactive' | 'maintenance';
 
-  constructor(data: {
-    staffCount: number;
-    customersCount: number;
-    routeLength: number;
-    openingHours: string;
-    closingHours: string;
-    status?: 'active' | 'inactive' | 'maintenance';
-    wagons?: Wagon[];
-    id?: string;
-  }) {
-    this._id = data.id ?? this.generateUUID();
-    this._wagons = data.wagons ?? [];
-    this._status = data.status ?? 'active';
-    this._staffCount = data.staffCount;
-    this._customersCount = data.customersCount;
-    this._routeLength = data.routeLength;
-    this._openingHours = data.openingHours;
-    this._closingHours = data.closingHours;
+export interface CoasterSchema {
+  liczba_personelu: number;
+  liczba_klientow: number;
+  dl_trasy: number;
+  godziny_od: string;
+  godziny_do: string;
+  wagony: WagonSchema[];
+  status: CoasterStatus;
+  id: string;
+}
+export class Coaster {
+  constructor(
+    private liczba_personelu: number,
+    private liczba_klientow: number,
+    private dl_trasy: number,
+    private godziny_od: string,
+    private godziny_do: string,
+    private wagony: Wagon[],
+    private status: 'active' | 'inactive' | 'maintenance' = 'active',
+    private readonly id: string,
+  ) {}
+
+  get identifier(): string {
+    return this.id;
   }
 
-  get id() {
-    return this._id;
+  get statusInformation(): string {
+    return this.status;
   }
 
-  get staffCount() {
-    return this._staffCount;
+  get staffCount(): number {
+    return this.liczba_personelu;
   }
 
-  get customersCount() {
-    return this._customersCount;
+  get clientCount(): number {
+    return this.liczba_klientow;
   }
 
-  get routeLength() {
-    return this._routeLength;
+  get trackLength(): number {
+    return this.dl_trasy;
   }
 
-  get openingHours() {
-    return this._openingHours;
+  get openingTime(): string {
+    return this.godziny_od;
   }
 
-  get closingHours() {
-    return this._closingHours;
+  get closingTime(): string {
+    return this.godziny_do;
   }
 
-  get wagons() {
-    return this._wagons;
-  }
-
-  get status() {
-    return this._status;
-  }
-
-  activate() {
-    this._status = 'active';
-  }
-
-  deactivate() {
-    this._status = 'inactive';
-  }
-
-  startMaintenance() {
-    this._status = 'maintenance';
-  }
-
-  updateStaffCount(newCount: number) {
-    if (newCount <= 0) {
-      throw new Error('Staff count must be positive');
-    }
-    this._staffCount = newCount;
-  }
-
-  updateCustomersCount(newCount: number) {
-    if (newCount < 0) {
-      throw new Error('Customers count cannot be negative');
-    }
-    this._customersCount = newCount;
+  get wagons(): Wagon[] {
+    return this.wagony;
   }
 
   addWagon(wagon: Wagon) {
-    this._wagons.push(wagon);
+    this.wagony.push(wagon);
+  }
+
+  findWagon(wagonId: string) {
+    return this.wagony.findIndex((w) => w.identifier === wagonId);
   }
 
   removeWagon(index: number) {
-    if (index < 0 || index >= this._wagons.length) {
+    if (index < 0 || index >= this.wagony.length) {
       throw new Error('Invalid wagon index');
     }
-    this._wagons.splice(index, 1);
+    this.wagony.splice(index, 1);
   }
 
-  private generateUUID(): string {
-    return crypto.randomUUID();
+  update(data: {
+    liczba_personelu: number;
+    liczba_klientow: number;
+    godziny_od: string;
+    godziny_do: string;
+  }) {
+    this.liczba_personelu = data.liczba_personelu;
+    this.liczba_klientow = data.liczba_klientow;
+    this.godziny_od = data.godziny_od;
+    this.godziny_do = data.godziny_do;
+  }
+  /**
+   * Serialization
+   */
+  toJSON(): CoasterSchema {
+    return {
+      liczba_personelu: this.liczba_personelu,
+      liczba_klientow: this.liczba_klientow,
+      dl_trasy: this.dl_trasy,
+      godziny_od: this.godziny_od,
+      godziny_do: this.godziny_do,
+      wagony: this.wagony.map((wagon) => wagon.toJSON()),
+      status: this.status,
+      id: this.id,
+    };
+  }
+  /**
+   * Deserialization
+   */
+  static fromJSON(json: CoasterSchema): Coaster {
+    const wagonInstances = json.wagony.map((wagonJson) => {
+      try {
+        return Wagon.fromJSON(wagonJson);
+      } catch (error) {
+        throw new Error(`Invalid wagon data: ${error.message}`);
+      }
+    });
+    return new Coaster(
+      json.liczba_personelu,
+      json.liczba_klientow,
+      json.dl_trasy,
+      json.godziny_od,
+      json.godziny_do,
+      wagonInstances,
+      json.status,
+      json.id,
+    );
+  }
+
+  static create(data: {
+    liczba_personelu: number;
+    liczba_klientow: number;
+    dl_trasy: number;
+    godziny_od: string;
+    godziny_do: string;
+    wagony?: Wagon[];
+    status?: 'active' | 'inactive' | 'maintenance';
+    id?: string;
+  }): Coaster {
+    return new Coaster(
+      data.liczba_personelu,
+      data.liczba_klientow,
+      data.dl_trasy,
+      data.godziny_od,
+      data.godziny_do,
+      data.wagony || [],
+      data.status || 'active',
+      data.id || crypto.randomUUID(),
+    );
   }
 }

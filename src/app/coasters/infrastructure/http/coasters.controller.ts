@@ -1,10 +1,20 @@
-import { Body, Controller, Delete, Param, Post, Put } from '@nestjs/common';
-import { CoastersService } from '../../application';
-import { CreateCoasterDto } from './dto';
+import { Body, Controller, Delete, Param, ParseUUIDPipe, Post, Put } from '@nestjs/common';
+import { CreateCoasterDTO, AddWagonDTO, UpdateCoasterDTO } from '../dto';
+import {
+  AddWagonToCoasterUseCase,
+  CreateCoasterUseCase,
+  RemoveWagonUseCase,
+  UpdateCoasterUseCase,
+} from '../../application/use-cases';
 
 @Controller('coasters')
 export class CoastersController {
-  constructor(private readonly coasterService: CoastersService) {}
+  constructor(
+    private readonly createCoasterUseCase: CreateCoasterUseCase,
+    private readonly addWagonUseCase: AddWagonToCoasterUseCase,
+    private readonly removeWagonUseCase: RemoveWagonUseCase,
+    private readonly updateCoasterUseCase: UpdateCoasterUseCase,
+  ) {}
   /**
    * Task 1. Rejestracja nowej kolejki górskiej:
    *
@@ -13,8 +23,8 @@ export class CoastersController {
    * 3. Przykład danych: { liczba_personelu: 16, liczba_klientow:60000, dl_trasy: 1800, godziny_od: "8:00", godziny_do:"16:00" }
    */
   @Post()
-  async createCoasters(@Body() body: CreateCoasterDto) {
-    return this.coasterService.create(body);
+  async createCoasters(@Body() body: CreateCoasterDTO) {
+    return this.createCoasterUseCase.execute(body);
   }
   /**
    * Task 2. Rejestracja nowego wagonu:
@@ -24,11 +34,8 @@ export class CoastersController {
    * 3. Przykład danych: { ilosc_miejsc: 32, predkosc_wagonu: 1.2 }
    */
   @Post(':coasterId/wagons')
-  createWagon(
-    @Param('coasterId') coasterId: string,
-    @Param('wagonId') wagonId: string,
-  ) {
-    return `This action create for coaster ${coasterId} wagons ${wagonId}`;
+  createWagon(@Param('coasterId', ParseUUIDPipe) coasterId: string, @Body() body: AddWagonDTO) {
+    return this.addWagonUseCase.execute(coasterId, body);
   }
   /**
    * Task 3. Usunięcie wagonu:
@@ -38,10 +45,10 @@ export class CoastersController {
    */
   @Delete(':coasterId/wagons/:wagonId')
   removeWagon(
-    @Param('coasterId') coasterId: string,
-    @Param('wagonId') wagonId: string,
+    @Param('coasterId', ParseUUIDPipe) coasterId: string,
+    @Param('wagonId', ParseUUIDPipe) wagonId: string,
   ) {
-    return `This action remove from coaster ${coasterId} wagons ${wagonId}`;
+    return this.removeWagonUseCase.execute(coasterId, wagonId);
   }
   /**
    * Task 4. Zmiana kolejki górskiej:
@@ -50,7 +57,10 @@ export class CoastersController {
    * 2. Aktualizuje dane istniejącej kolejki górskiej, takie jak liczba personelu, liczba klientów dziennie i godziny operacyjne. Długość trasy się nie zmienia
    */
   @Put(':coasterId')
-  updateCoaster(@Param('coasterId') coasterId: string): string {
-    return `This action update coaster ${coasterId}`;
+  updateCoaster(
+    @Param('coasterId', ParseUUIDPipe) coasterId: string,
+    @Body() body: UpdateCoasterDTO,
+  ) {
+    return this.updateCoasterUseCase.execute(coasterId, body);
   }
 }
