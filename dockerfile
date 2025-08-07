@@ -49,6 +49,9 @@ COPY --chown=nestjs:nestjs --from=deps /app/node_modules ./node_modules
 COPY --chown=nestjs:nestjs --from=builder /app/dist/. ./
 COPY --chown=nestjs:nestjs --from=builder /app/package.json ./package.json
 
+# Create data directory with correct permissions
+RUN mkdir -p /app/data && chown nestjs:nestjs /app/data
+
 USER nestjs
 
 ENV PORT=3000
