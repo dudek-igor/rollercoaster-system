@@ -15,14 +15,12 @@ export const createRedisClient = async (
     host,
     port,
     password,
+    maxRetriesPerRequest: 1,
     // Reconnect every 2 seconds indefinitely
     retryStrategy: () => {
       return 2000;
     },
-    maxRetriesPerRequest: null,
   });
-
-  await client.ping();
 
   return client;
 };

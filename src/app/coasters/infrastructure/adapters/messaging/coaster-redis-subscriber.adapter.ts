@@ -26,9 +26,11 @@ export default class CoasterRedisEventSubscriberAdapter
   ) {}
 
   async onModuleInit() {
-    await this.synchronize();
-    await this.subscribe();
-    await this.fallback();
+    this.redis.once('ready', async () => {
+      await this.synchronize();
+      await this.subscribe();
+      await this.fallback();
+    });
   }
 
   /**
@@ -71,10 +73,9 @@ export default class CoasterRedisEventSubscriberAdapter
           }
         }
       }
+      setImmediate(async () => await this.subscribe());
     } catch (err) {
-      this.logger.error('[REDIS - SUBSCRIBER] Error:', err.message);
-    } finally {
-      setImmediate(() => this.subscribe());
+      this.logger.error('[REDIS - SUBSCRIBER] Error occurred');
     }
   }
 
@@ -87,6 +88,7 @@ export default class CoasterRedisEventSubscriberAdapter
         '[REDIS SUBSCRIBER FALLBACK] Connection reestablished. Resync and restart polling...',
       );
       await this.synchronize();
+      await this.subscribe();
     });
   }
   /**

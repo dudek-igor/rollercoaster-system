@@ -8,8 +8,10 @@ export default class CoasterRedisGroup implements OnModuleInit {
 
   constructor(@Inject(REDIS_CLIENT) private readonly redis: Redis) {}
 
-  async onModuleInit() {
-    await this.ensureConsumerGroup();
+  onModuleInit() {
+    this.redis.once('ready', async () => {
+      await this.ensureConsumerGroup();
+    });
   }
   /**
    * Creating a consumer group (if it doesn't exist).
@@ -28,9 +30,7 @@ export default class CoasterRedisGroup implements OnModuleInit {
       if (err.message.includes('BUSYGROUP')) {
         this.logger.log(`[REDIS - INIT] Group ${REDIS_COASTER_GROUP_NAME} already exists.`);
       } else {
-        this.logger.log(`[REDIS - INIT] Error while creating  ${REDIS_COASTER_GROUP_NAME} group.`, {
-          err,
-        });
+        this.logger.log(`[REDIS - INIT] Error while creating  ${REDIS_COASTER_GROUP_NAME} group.`);
       }
     }
   }

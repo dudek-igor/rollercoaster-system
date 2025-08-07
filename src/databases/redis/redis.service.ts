@@ -21,20 +21,20 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
    * Initializes the module and starts leader election process.
    */
   async onModuleInit(): Promise<void> {
-    await this.startLeaderElection();
+    this.redis.once('ready', async () => {
+      await this.startLeaderElection();
+    });
   }
   /**
    * Cleans up on module shutdown: clears intervals and releases leadership if held.
    */
   async onModuleDestroy(): Promise<void> {
     this.stopRenewalInterval();
-
     const currentLeader = await this.redis.get(RedisService.LEADER_KEY);
     if (currentLeader === this.renewIntervalRef) {
       await this.redis.del(RedisService.LEADER_KEY);
       this.logger.log(`[REDIS - LEADER] Leadership released by ${this.instanceId}`);
     }
-
     await this.redis.quit();
   }
   /**
@@ -55,12 +55,14 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     await this.tryAcquireLeadership();
 
     this.renewIntervalRef = setInterval(async () => {
-      const currentLeader = await this.redis.get(RedisService.LEADER_KEY);
+      if (this.redis.status === 'ready') {
+        const currentLeader = await this.redis.get(RedisService.LEADER_KEY);
 
-      if (currentLeader === this.instanceId) {
-        await this.renewLeadership();
-      } else {
-        await this.tryAcquireLeadership();
+        if (currentLeader === this.instanceId) {
+          await this.renewLeadership();
+        } else {
+          await this.tryAcquireLeadership();
+        }
       }
     }, RedisService.RENEW_INTERVAL_MS);
   }
@@ -69,37 +71,43 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
    * Attempts to acquire leadership using Redis SET NX with TTL.
    */
   private async tryAcquireLeadership(): Promise<void> {
-    const result = await this.redis.set(
-      RedisService.LEADER_KEY,
-      this.instanceId,
-      'EX',
-      RedisService.TTL_SECONDS,
-      'NX',
-    );
+    if (this.redis.status === 'ready') {
+      const result = await this.redis.set(
+        RedisService.LEADER_KEY,
+        this.instanceId,
+        'EX',
+        RedisService.TTL_SECONDS,
+        'NX',
+      );
 
-    if (result === 'OK') {
-      this.isLeader = true;
-      this.logger.log(`[REDIS - LEADER] Acquired by ${this.instanceId}`);
-    } else {
-      this.isLeader = false;
-      const leader = await this.redis.get(RedisService.LEADER_KEY);
-      this.logger.log(`[READIS - LEADER] Currently held by: ${leader}`);
+      if (result === 'OK') {
+        this.isLeader = true;
+        this.logger.log(`[REDIS - LEADER] Acquired by ${this.instanceId}`);
+      } else {
+        this.isLeader = false;
+        const leader = await this.redis.get(RedisService.LEADER_KEY);
+        this.logger.log(`[READIS - LEADER] Currently held by: ${leader}`);
+      }
     }
   }
   /**
    * Renews leadership by extending TTL using SET XX.
    */
   private async renewLeadership(): Promise<void> {
-    await this.redis.set(
-      RedisService.LEADER_KEY,
-      this.instanceId,
-      'EX',
-      RedisService.TTL_SECONDS,
-      'XX',
-    );
+    if (this.redis.status === 'ready') {
+      await this.redis.set(
+        RedisService.LEADER_KEY,
+        this.instanceId,
+        'EX',
+        RedisService.TTL_SECONDS,
+        'XX',
+      );
 
-    this.isLeader = true;
-    this.logger.log(`[REDIS - LEADER] TTL renewed by ${this.instanceId}`);
+      this.isLeader = true;
+      this.logger.log(`[REDIS - LEADER] TTL renewed by ${this.instanceId}`);
+    } else {
+      this.isLeader = false;
+    }
   }
   /**
    * Clears the leadership renewal interval if active.

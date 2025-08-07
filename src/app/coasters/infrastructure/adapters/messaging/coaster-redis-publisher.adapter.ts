@@ -17,8 +17,10 @@ export default class CoasterRedisEventPublisherAdapter
   ) {}
 
   async onModuleInit() {
-    await this.synchronize();
-    await this.fallback();
+    this.redis.once('ready', async () => {
+      await this.synchronize();
+      await this.fallback();
+    });
   }
 
   async publish(coaster: Coaster): Promise<boolean> {
