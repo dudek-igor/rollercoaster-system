@@ -23,24 +23,26 @@ export class CoastersMonitoring implements OnModuleInit, OnModuleDestroy {
   }
 
   private async logStats() {
-    // console.clear();
-    // try {
-    //   const coasters = await this.coasterRepo.findAll();
-    //   console.log(`[Godzina: ${DateTime.now().toFormat('HH:mm')}]`);
-    //   coasters.forEach((coaster) => {
-    //     const stats = coaster.statistics;
-    //     console.log(` `);
-    //     console.log(`[${stats.name}]`);
-    //     console.log(`1. Godziny działania: ${stats.operatingHours}`);
-    //     console.log(`2. Liczba wagonów: ${stats.wagons}`);
-    //     console.log(`3. Dostępny personel:: ${stats.staff}`);
-    //     console.log(`4. Klienci dziennie: ${stats.availableClientCapacity}`);
-    //     console.log(`5. Status: ${stats.status}`);
-    //     console.log(` `);
-    //   });
-    // } catch (err) {
-    //   this.logger.error(`[MONITORING] Failed to refresh stats: ${err.message}`);
-    // }
+    try {
+      const coasters = await this.coasterRepo.findAll();
+      if (coasters.length) {
+        console.clear();
+        console.log(`[Godzina: ${DateTime.now().toFormat('HH:mm')}]`);
+        coasters.forEach((coaster) => {
+          const stats = coaster.statistics;
+          console.log(` `);
+          console.log(`[${stats.name}]`);
+          console.log(`1. Godziny działania: ${stats.operatingHours}`);
+          console.log(`2. Liczba wagonów: ${stats.wagons}`);
+          console.log(`3. Dostępny personel:: ${stats.staff}`);
+          console.log(`4. Klienci dziennie: ${stats.availableClientCapacity}`);
+          console.log(`5. Status: ${stats.status}`);
+          console.log(` `);
+        });
+      }
+    } catch (err) {
+      this.logger.error(`[MONITORING] Failed to refresh stats: ${err.message}`);
+    }
   }
 
   stop() {
