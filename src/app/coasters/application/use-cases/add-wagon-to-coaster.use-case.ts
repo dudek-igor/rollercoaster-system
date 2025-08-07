@@ -1,11 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Wagon } from '../../core/entities';
-import { CoasterRepositoryPort } from '../../core/ports';
+import { CoasterSchema, Wagon } from '../../core/entities';
+import { CoasterRepositoryPort, CoasterEventPublisherPort } from '../../core/ports';
 import { AddWagonDTO } from '../../infrastructure/dto';
 
 @Injectable()
 export class AddWagonToCoasterUseCase {
-  constructor(private readonly coasterRepo: CoasterRepositoryPort) {}
+  constructor(
+    private readonly coasterRepo: CoasterRepositoryPort,
+    private readonly coasterEventPublisher: CoasterEventPublisherPort,
+  ) {}
 
   /**
    * Adds a new wagon to a roller coaster by its coaster ID.
@@ -16,17 +19,16 @@ export class AddWagonToCoasterUseCase {
    *
    * @throws {NotFoundException} If the coaster with the given `coasterId` does not exist.
    */
-  async execute(coasterId: string, data: AddWagonDTO) {
+  async execute(coasterId: string, data: AddWagonDTO): Promise<Omit<CoasterSchema, 'published'>> {
     const coaster = await this.coasterRepo.findById(coasterId);
     if (!coaster) {
       throw new NotFoundException(`Coaster ${coasterId} does not exist`);
     }
     const wagon = Wagon.create(data);
     coaster.addWagon(wagon);
-    const statistics = coaster.statistics;
-    console.log({ statistics });
-
+    coaster.adjustPublished(false);
     await this.coasterRepo.save(coaster);
-    return coaster;
+    await this.coasterEventPublisher.publish(coaster);
+    return coaster.toResponse();
   }
 }

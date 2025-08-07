@@ -1,12 +1,7 @@
 import { ConfigService } from '@nestjs/config';
 import { EnvironmentVariables } from '@/config';
 import Redis from 'ioredis';
-import {
-  REDIS_CLIENT,
-  REDIS_HOST,
-  REDIS_PASSWORD,
-  REDIS_PORT,
-} from '@/constants';
+import { REDIS_CLIENT, REDIS_HOST, REDIS_PASSWORD, REDIS_PORT } from '@/constants';
 import { Provider } from '@nestjs/common';
 
 export const createRedisClient = async (

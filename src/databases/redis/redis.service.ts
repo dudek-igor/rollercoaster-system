@@ -1,11 +1,7 @@
-import {
-  Inject,
-  Injectable,
-  OnModuleInit,
-  OnModuleDestroy,
-} from '@nestjs/common';
-import { REDIS_CLIENT } from '@/constants';
+import { Inject, Injectable, OnModuleInit, OnModuleDestroy, LoggerService } from '@nestjs/common';
+import { REDIS_CLIENT, REDIS_NODE } from '@/constants';
 import type Redis from 'ioredis';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 /**
  * Service responsible for Redis leader election logic.
  */
@@ -15,11 +11,14 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   private static readonly TTL_SECONDS = 10;
   private static readonly RENEW_INTERVAL_MS = 5000;
 
-  private instanceId = `node-${Math.random().toString(36).substring(2, 8)}`;
+  private readonly instanceId = REDIS_NODE;
   private renewIntervalRef: NodeJS.Timeout | null = null;
   private isLeader = false;
 
-  constructor(@Inject(REDIS_CLIENT) private readonly redis: Redis) {}
+  constructor(
+    @Inject(REDIS_CLIENT) private readonly redis: Redis,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: LoggerService,
+  ) {}
 
   /**
    * Initializes the module and starts leader election process.
@@ -36,7 +35,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     const currentLeader = await this.redis.get(RedisService.LEADER_KEY);
     if (currentLeader === this.renewIntervalRef) {
       await this.redis.del(RedisService.LEADER_KEY);
-      console.log(`[LEADER] Leadership released by ${this.instanceId}`);
+      this.logger.log(`[REDIS - LEADER] Leadership released by ${this.instanceId}`);
     }
 
     await this.redis.quit();
@@ -78,11 +77,11 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
     if (result === 'OK') {
       this.isLeader = true;
-      console.log(`[LEADER] Acquired by ${this.instanceId}`);
+      this.logger.log(`[REDIS - LEADER] Acquired by ${this.instanceId}`);
     } else {
       this.isLeader = false;
       const leader = await this.redis.get(RedisService.LEADER_KEY);
-      console.log(`[LEADER] Currently held by: ${leader}`);
+      this.logger.log(`[READIS - LEADER] Currently held by: ${leader}`);
     }
   }
   /**
@@ -98,7 +97,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     );
 
     this.isLeader = true;
-    console.log(`[LEADER] TTL renewed by ${this.instanceId}`);
+    this.logger.log(`[REDIS - LEADER] TTL renewed by ${this.instanceId}`);
   }
   /**
    * Clears the leadership renewal interval if active.

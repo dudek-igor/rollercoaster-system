@@ -1,6 +1,6 @@
 import * as crypto from 'crypto';
 export interface WagonSchema {
-  id: string;
+  id?: string;
   ilosc_miejsc: number;
   predkosc_wagonu: number;
 }
@@ -55,10 +55,10 @@ export class Wagon {
    * Deserialization
    */
   static fromJSON(json: WagonSchema): Wagon {
-    return new Wagon(json.id, json.ilosc_miejsc, json.predkosc_wagonu);
+    return new Wagon(json.id || crypto.randomUUID(), json.ilosc_miejsc, json.predkosc_wagonu);
   }
 
-  static create(data: { ilosc_miejsc: number; predkosc_wagonu: number; id?: string }): Wagon {
+  static create(data: WagonSchema): Wagon {
     const id = data.id || crypto.randomUUID();
     return new Wagon(id, data.ilosc_miejsc, data.predkosc_wagonu);
   }

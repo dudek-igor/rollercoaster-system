@@ -18,6 +18,7 @@ export interface CoasterSchema {
   godziny_od: string;
   godziny_do: string;
   wagony: WagonSchema[];
+  published: boolean;
   id: string;
 }
 export class Coaster {
@@ -28,6 +29,7 @@ export class Coaster {
     private godziny_od: string,
     private godziny_do: string,
     private wagony: Wagon[],
+    private published: boolean,
     private readonly id: string,
   ) {}
 
@@ -61,6 +63,10 @@ export class Coaster {
 
   get operatingHours(): string {
     return `${this.godziny_od} - ${this.godziny_do}`;
+  }
+
+  get isPublished(): boolean {
+    return this.published;
   }
 
   get wagons(): Wagon[] {
@@ -186,6 +192,10 @@ export class Coaster {
     };
   }
 
+  adjustPublished(isPublished: boolean) {
+    this.published = isPublished;
+  }
+
   addWagon(wagon: Wagon) {
     this.wagony.push(wagon);
   }
@@ -215,6 +225,18 @@ export class Coaster {
   /**
    * Serialization
    */
+  toResponse(): Omit<CoasterSchema, 'published'> {
+    return {
+      liczba_personelu: this.liczba_personelu,
+      liczba_klientow: this.liczba_klientow,
+      dl_trasy: this.dl_trasy,
+      godziny_od: this.godziny_od,
+      godziny_do: this.godziny_do,
+      wagony: this.wagony.map((wagon) => wagon.toJSON()),
+      id: this.id,
+    };
+  }
+
   toJSON(): CoasterSchema {
     return {
       liczba_personelu: this.liczba_personelu,
@@ -223,6 +245,7 @@ export class Coaster {
       godziny_od: this.godziny_od,
       godziny_do: this.godziny_do,
       wagony: this.wagony.map((wagon) => wagon.toJSON()),
+      published: this.published,
       id: this.id,
     };
   }
@@ -244,6 +267,7 @@ export class Coaster {
       json.godziny_od,
       json.godziny_do,
       wagonInstances,
+      json.published,
       json.id,
     );
   }
@@ -254,16 +278,19 @@ export class Coaster {
     dl_trasy: number;
     godziny_od: string;
     godziny_do: string;
-    wagony?: Wagon[];
+    wagony?: WagonSchema[];
     id?: string;
   }): Coaster {
+    const wagony = data.wagony?.map((wagon) => Wagon.create(wagon));
+
     return new Coaster(
       data.liczba_personelu,
       data.liczba_klientow,
       data.dl_trasy,
       data.godziny_od,
       data.godziny_do,
-      data.wagony || [],
+      wagony || [],
+      false,
       data.id || crypto.randomUUID(),
     );
   }

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { CoasterRepositoryPort } from '../../core/ports';
-import { Coaster, type CoasterSchema } from '../../core/entities';
+import { CoasterRepositoryPort } from '../../../core/ports';
+import { Coaster, type CoasterSchema } from '../../../core/entities';
 import { FileStorageService } from '@/databases/file-storage/file-storage.service';
 
 @Injectable()
