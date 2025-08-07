@@ -173,14 +173,6 @@ export class Coaster {
       requiredWagons = avgSeatsPerWagon > 0 ? Math.ceil(seatsNeededPerCycle / avgSeatsPerWagon) : 0;
     }
 
-    // const missingStaff = Math.max(0, requiredStaff - availableStaff);
-    // const excessStaff = Math.max(0, availableStaff - requiredStaff);
-
-    // const missingWagons =
-    //   this.numberOfWagons === 0 ? 0 : Math.max(0, requiredWagons - this.numberOfWagons);
-    // const excessWagons =
-    //   this.numberOfWagons === 0 ? 0 : Math.max(0, this.numberOfWagons - requiredWagons);
-
     return {
       id: this.id,
       name: this.name,

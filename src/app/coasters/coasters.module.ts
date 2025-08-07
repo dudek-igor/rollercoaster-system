@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { FileStorageModule, RedisModule } from '@/databases';
 import { CoastersController } from './infrastructure/http/coasters.controller';
+import { CoastersMonitoring } from './infrastructure/monitoring/coasters.monitoring';
 import {
   CoasterRedisGroup,
   CoasterPersistenceProvider,
@@ -24,6 +25,8 @@ import {
     CoasterRedisGroup,
     CoasterEventPublisher,
     CoasterEventSubscriber,
+    /** Monitoring */
+    CoastersMonitoring,
     /** Use Cases */
     CreateCoasterUseCase,
     AddWagonToCoasterUseCase,
