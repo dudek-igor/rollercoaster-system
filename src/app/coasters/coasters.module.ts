@@ -15,10 +15,13 @@ import {
   UpdateCoasterUseCase,
   FindAllUnpublishCoaster,
 } from './application/use-cases';
+import { LeaderOnlyGuard } from '@/guard/leader-only.guard';
 
 @Module({
   controllers: [CoastersController],
   providers: [
+    /** Guard */
+    LeaderOnlyGuard,
     /** DB */
     CoasterPersistenceProvider,
     /** EVENT BUS */

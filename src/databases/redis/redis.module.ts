@@ -17,6 +17,6 @@ import { ConfigModule } from '@nestjs/config';
 @Module({
   imports: [ConfigModule],
   providers: [RedisProvider, RedisService],
-  exports: [RedisProvider],
+  exports: [RedisProvider, RedisService],
 })
 export class RedisModule {}

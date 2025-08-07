@@ -1,4 +1,13 @@
-import { Body, Controller, Delete, Param, ParseUUIDPipe, Post, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
 import { CreateCoasterDTO, AddWagonDTO, UpdateCoasterDTO } from '../dto';
 import {
   AddWagonToCoasterUseCase,
@@ -6,8 +15,10 @@ import {
   RemoveWagonUseCase,
   UpdateCoasterUseCase,
 } from '../../application/use-cases';
+import { LeaderOnlyGuard } from '@/guard/leader-only.guard';
 
 @Controller('coasters')
+@UseGuards(LeaderOnlyGuard)
 export class CoastersController {
   constructor(
     private readonly createCoasterUseCase: CreateCoasterUseCase,
