@@ -1,12 +1,12 @@
-import { Inject, Injectable, OnModuleInit, OnModuleDestroy, LoggerService } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import { REDIS_CLIENT, REDIS_NODE } from '@/constants';
 import type Redis from 'ioredis';
-import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 /**
  * Service responsible for Redis leader election logic.
  */
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(RedisService.name);
   private static readonly LEADER_KEY = 'leader';
   private static readonly TTL_SECONDS = 10;
   private static readonly RENEW_INTERVAL_MS = 5000;
@@ -15,16 +15,13 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   private renewIntervalRef: NodeJS.Timeout | null = null;
   private isLeader = false;
 
-  constructor(
-    @Inject(REDIS_CLIENT) private readonly redis: Redis,
-    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: LoggerService,
-  ) {}
+  constructor(@Inject(REDIS_CLIENT) private readonly redis: Redis) {}
 
   /**
    * Initializes the module and starts leader election process.
    */
   async onModuleInit(): Promise<void> {
-    // await this.startLeaderElection();
+    await this.startLeaderElection();
   }
   /**
    * Cleans up on module shutdown: clears intervals and releases leadership if held.
@@ -42,8 +39,13 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
   /**
    * Returns whether the current instance is the leader.
+   * Throws an error if Redis connection is down.
    */
   getIsLeader(): boolean {
+    if (!this.redis.status || this.redis.status !== 'ready') {
+      throw new Error('[REDIS] Connection is not active');
+    }
+
     return this.isLeader;
   }
   /**

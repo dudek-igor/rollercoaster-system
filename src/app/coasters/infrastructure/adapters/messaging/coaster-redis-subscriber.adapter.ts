@@ -1,5 +1,4 @@
-import { Injectable, OnModuleInit, Inject, LoggerService } from '@nestjs/common';
-import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+import { Injectable, OnModuleInit, Inject, Logger } from '@nestjs/common';
 import { FileStorageService } from '@/databases/file-storage/file-storage.service';
 import type { Redis } from 'ioredis';
 import {
@@ -18,10 +17,11 @@ import { CreateCoasterUseCase } from '@/app/coasters/application/use-cases';
 export default class CoasterRedisEventSubscriberAdapter
   implements OnModuleInit, CoasterEventSubscriberPort
 {
+  private readonly logger = new Logger(CoasterRedisEventSubscriberAdapter.name);
+
   constructor(
     private readonly fileStorage: FileStorageService,
     private readonly createCoasterUseCase: CreateCoasterUseCase,
-    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: LoggerService,
     @Inject(REDIS_CLIENT) private readonly redis: Redis,
   ) {}
 

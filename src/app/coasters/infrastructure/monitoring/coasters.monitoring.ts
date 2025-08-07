@@ -1,17 +1,13 @@
-import { Injectable, OnModuleInit, Inject, OnModuleDestroy } from '@nestjs/common';
-import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import { DateTime } from 'luxon';
-import { LoggerService } from '@nestjs/common';
 import { CoasterRepositoryPort } from '../../core/ports';
 
 @Injectable()
 export class CoastersMonitoring implements OnModuleInit, OnModuleDestroy {
   private intervalId: NodeJS.Timeout | null = null;
+  private readonly logger = new Logger(CoastersMonitoring.name);
 
-  constructor(
-    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: LoggerService,
-    private readonly coasterRepo: CoasterRepositoryPort,
-  ) {}
+  constructor(private readonly coasterRepo: CoasterRepositoryPort) {}
 
   async onModuleInit() {
     await this.startMonitoringLoop();
@@ -27,24 +23,24 @@ export class CoastersMonitoring implements OnModuleInit, OnModuleDestroy {
   }
 
   private async logStats() {
-    console.clear();
-    try {
-      const coasters = await this.coasterRepo.findAll();
-      console.log(`[Godzina: ${DateTime.now().toFormat('HH:mm')}]`);
-      coasters.forEach((coaster) => {
-        const stats = coaster.statistics;
-        console.log(` `);
-        console.log(`[${stats.name}]`);
-        console.log(`1. Godziny działania: ${stats.operatingHours}`);
-        console.log(`2. Liczba wagonów: ${stats.wagons}`);
-        console.log(`3. Dostępny personel:: ${stats.staff}`);
-        console.log(`4. Klienci dziennie: ${stats.availableClientCapacity}`);
-        console.log(`5. Status: ${stats.status}`);
-        console.log(` `);
-      });
-    } catch (err) {
-      this.logger.error(`[MONITORING] Failed to refresh stats: ${err.message}`);
-    }
+    // console.clear();
+    // try {
+    //   const coasters = await this.coasterRepo.findAll();
+    //   console.log(`[Godzina: ${DateTime.now().toFormat('HH:mm')}]`);
+    //   coasters.forEach((coaster) => {
+    //     const stats = coaster.statistics;
+    //     console.log(` `);
+    //     console.log(`[${stats.name}]`);
+    //     console.log(`1. Godziny działania: ${stats.operatingHours}`);
+    //     console.log(`2. Liczba wagonów: ${stats.wagons}`);
+    //     console.log(`3. Dostępny personel:: ${stats.staff}`);
+    //     console.log(`4. Klienci dziennie: ${stats.availableClientCapacity}`);
+    //     console.log(`5. Status: ${stats.status}`);
+    //     console.log(` `);
+    //   });
+    // } catch (err) {
+    //   this.logger.error(`[MONITORING] Failed to refresh stats: ${err.message}`);
+    // }
   }
 
   stop() {

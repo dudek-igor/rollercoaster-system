@@ -16,8 +16,7 @@ export const createRedisClient = async (
     port,
     password,
     // Reconnect every 2 seconds indefinitely
-    retryStrategy: (times) => {
-      console.log(`Reconnect attempt: ${times}`);
+    retryStrategy: () => {
       return 2000;
     },
     maxRetriesPerRequest: null,

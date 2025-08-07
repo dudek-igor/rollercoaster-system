@@ -1,14 +1,12 @@
-import { Inject, Injectable, OnModuleInit, type LoggerService } from '@nestjs/common';
+import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { REDIS_CLIENT, REDIS_COASTER_STREAM_KEY, REDIS_COASTER_GROUP_NAME } from '@/constants';
 import type Redis from 'ioredis';
-import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
 @Injectable()
 export default class CoasterRedisGroup implements OnModuleInit {
-  constructor(
-    @Inject(REDIS_CLIENT) private readonly redis: Redis,
-    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: LoggerService,
-  ) {}
+  private readonly logger = new Logger(CoasterRedisGroup.name);
+
+  constructor(@Inject(REDIS_CLIENT) private readonly redis: Redis) {}
 
   async onModuleInit() {
     await this.ensureConsumerGroup();
@@ -30,7 +28,9 @@ export default class CoasterRedisGroup implements OnModuleInit {
       if (err.message.includes('BUSYGROUP')) {
         this.logger.log(`[REDIS - INIT] Group ${REDIS_COASTER_GROUP_NAME} already exists.`);
       } else {
-        throw err;
+        this.logger.log(`[REDIS - INIT] Error while creating  ${REDIS_COASTER_GROUP_NAME} group.`, {
+          err,
+        });
       }
     }
   }

@@ -1,7 +1,6 @@
-import { Inject, Injectable, OnModuleInit, type LoggerService } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { REDIS_CLIENT, REDIS_COASTER_STREAM_KEY, REDIS_COASTER_EVENT_NAME } from '@/constants';
 import type Redis from 'ioredis';
-import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { CoasterEventPublisherPort } from '../../../core/ports';
 import { FindAllUnpublishCoaster } from '@/app/coasters/application/use-cases';
 import { Coaster } from '@/app/coasters/core/entities';
@@ -10,10 +9,11 @@ import { Coaster } from '@/app/coasters/core/entities';
 export default class CoasterRedisEventPublisherAdapter
   implements OnModuleInit, CoasterEventPublisherPort
 {
+  private readonly logger = new Logger(CoasterRedisEventPublisherAdapter.name);
+
   constructor(
     private readonly findAllUnpublishCoaster: FindAllUnpublishCoaster,
     @Inject(REDIS_CLIENT) private readonly redis: Redis,
-    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: LoggerService,
   ) {}
 
   async onModuleInit() {
